@@ -1,0 +1,17 @@
+.venv/
+venv/
+env/
+
+
+.idea/
+
+
+airflow.cfg
+logs/
+*.generated
+airflow.db
+webserver_config.py
+
+
+__pycache__/
+*.py[cod]

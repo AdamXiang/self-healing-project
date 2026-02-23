@@ -42,50 +42,48 @@ This project implements a **six-stage Airflow DAG** that solves this with three 
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Airflow DAG Execution Flow                   │
 │                                                                 │
-│  ┌───────────┐    ┌────────────┐    ┌─────────────────────┐    │
-│  │load_model │    │load_reviews│    │diagnose_and_heal    │    │
-│  │           │    │            │    │                     │    │
-│  │ Validate  │    │ Stream     │    │ ┌─────────────────┐ │    │
+│  ┌───────────┐    ┌────────────┐    ┌─────────────────────┐     │
+│  │load_model │    │load_reviews│    │diagnose_and_heal    │     │
+│  │           │    │            │    │                     │     │
+│  │ Validate  │    │ Stream     │    │ ┌─────────────────┐ │     │
 │  │ Ollama    │    │ JSONL via  │    │ │ null → placeholder│ │   │
-│  │ connection│    │ islice()   │    │ │ wrong_type → str │ │    │
-│  │ + test    │    │ (O(1) mem) │    │ │ empty → placeholder│ │  │
-│  │ prompt    │    │            │    │ │ special_chars → ✂ │ │   │
-│  └─────┬─────┘    └─────┬──────┘   │ │ too_long → trunc │ │    │
-│        │                │          │ └─────────────────┘ │    │
-│        │                │          └──────────┬──────────┘    │
-│        │                │                     │               │
-│        └────────────────┼─────────────────────┘               │
-│                         ▼                                      │
-│              ┌─────────────────────┐                           │
-│              │batch_analyze_       │                           │
-│              │sentiment            │◄── model_info (XCom)     │
-│              │                     │                           │
-│              │ Per-item retry(x3)  │                           │
-│              │ Two-stage parser    │                           │
-│              │ Degraded fallback   │                           │
-│              └──────────┬──────────┘                          │
-│                         │                                      │
-│              ┌──────────▼──────────┐   writes JSON to disk    │
-│              │aggregate_results    │──────────────────────►   │
-│              │                     │   /output/*.json          │
-│              │ Sentiment dist.     │                           │
-│              │ Star correlation    │   returns lightweight     │
-│              │ Avg confidence      │   summary to XCom ◄──    │
-│              └──────────┬──────────┘                          │
-│                         │                                      │
-│              ┌──────────▼──────────┐                           │
-│              │generate_health_     │                           │
-│              │report               │                           │
-│              │                     │                           │
-│              │ HEALTHY             │                           │
-│              │ WARNING (>50% healed│                           │
-│              │ DEGRADED (>0 degrade│                           │
-│              │ CRITICAL (>10% deg.)│                           │
-│              └─────────────────────┘                           │
+│  │ connection│    │ islice()   │    │ │ wrong_type → str  │ │   │
+│  │ + test    │    │ (O(1) mem) │    │ │ empty → placeholder││   │
+│  │ prompt    │    │            │    │ │ special_chars → ✂│ │   │
+│  └─────┬─────┘    └─────┬──────┘   │ │ too_long → trunc │ │     │
+│        │                │          │ └─────────────────┘ │      │
+│        │                │          └──────────┬──────────┘      │
+│        │                │                     │                 │
+│        └────────────────┼─────────────────────┘                 │
+│                         ▼                                       │
+│              ┌─────────────────────┐                            │
+│              │batch_analyze_       │                            │
+│              │sentiment            │◄── model_info (XCom)       │
+│              │                     │                            │
+│              │ Per-item retry(x3)  │                            │
+│              │ Two-stage parser    │                            │
+│              │ Degraded fallback   │                            │
+│              └──────────┬──────────┘                            │
+│                         │                                       │
+│              ┌──────────▼──────────┐   writes JSON to disk      │
+│              │aggregate_results    │──────────────────────►     │
+│              │                     │   /output/*.json           │
+│              │ Sentiment dist.     │                            │
+│              │ Star correlation    │   returns lightweight      │
+│              │ Avg confidence      │   summary to XCom ◄──      │
+│              └──────────┬──────────┘                            │
+│                         │                                       │
+│              ┌──────────▼──────────┐                            │
+│              │generate_health_     │                            │
+│              │report               │                            │
+│              │                     │                            │
+│              │ HEALTHY             │                            │
+│              │ WARNING (>50% healed│                            │
+│              │ DEGRADED (>0 degrade│                            │
+│              │ CRITICAL (>10% deg.)│                            │
+│              └─────────────────────┘                            │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
-> [建議在此處插入 Airflow DAG Graph 實際截圖]
 
 ### Data Flow
 
@@ -359,3 +357,8 @@ self-healing/
 | **Alerting** | Health status logged only | Integrate with PagerDuty, Slack webhook, or Airflow callbacks on `CRITICAL` status |
 | **Healing coverage** | 5 rule-based strategies | Add ML-based anomaly detection for unknown corruption patterns |
 | **Parallel processing** | Sequential per-item inference | Implement Airflow dynamic task mapping for parallel batch processing |
+
+
+## 🙏 Acknowledgments
+
+**CodeWithYu** provides this useful and insight data engineering project - Self-Healing Project
